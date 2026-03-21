@@ -59,8 +59,9 @@ def health_check():
 # If the path is wrong, it will surface naturally rather than hiding the route
 app.mount("/assets", StaticFiles(directory=str(dist_dir / "assets")), name="assets")
 
+@app.get("/")
 @app.get("/{catchall:path}")
-async def serve_react_app(request: Request, catchall: str):
+async def serve_react_app(request: Request, catchall: str = ""):
     # Allow specific static files from the root of /dist like logo.png
     if catchall in ["logo.png", "vite.svg"]:
         return FileResponse(str(dist_dir / catchall))
