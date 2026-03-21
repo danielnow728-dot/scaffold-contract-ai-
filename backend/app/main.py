@@ -42,30 +42,29 @@ app.include_router(chat.router, prefix=settings.API_V1_STR + "/chat", tags=["cha
 app.include_router(websockets.router, prefix=settings.API_V1_STR, tags=["websockets"])
 
 import os
+from pathlib import Path
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from fastapi import Request
 
 # Mount the static Vite React app on the root path for production
-dist_dir = os.path.join(os.path.dirname(__file__), "../../frontend/dist")
+# Pathlib accurately resolves across root /opt/ directories where __file__ might be symlinked or obfuscated
+dist_dir = Path(__file__).resolve().parent.parent.parent / "frontend" / "dist"
 
 @app.get("/api/health")
 def health_check():
     return {"status": "ok"}
 
-# We must define the catch-all for React at the very bottom so it doesn't intercept API routes
-if os.path.exists(dist_dir):
-    app.mount("/assets", StaticFiles(directory=os.path.join(dist_dir, "assets")), name="assets")
+# Unconditionally define the catch-all to prevent 404 failure modes
+# If the path is wrong, it will surface naturally rather than hiding the route
+app.mount("/assets", StaticFiles(directory=str(dist_dir / "assets")), name="assets")
+
+@app.get("/{catchall:path}")
+async def serve_react_app(request: Request, catchall: str):
+    # Allow specific static files from the root of /dist like logo.png
+    if catchall in ["logo.png", "vite.svg"]:
+        return FileResponse(str(dist_dir / catchall))
     
-    # Catch-all to serve the React index.html for Single Page Application routing (and avoiding 404s on refresh)
-    @app.get("/{catchall:path}")
-    async def serve_react_app(request: Request, catchall: str):
-        # Allow specific static files from the root of /dist like logo.png
-        if catchall in ["logo.png", "vite.svg"]:
-            return FileResponse(os.path.join(dist_dir, catchall))
-        
-        # Everything else goes to index.html (React Router)
-        return FileResponse(os.path.join(dist_dir, "index.html"))
-else:
-    print("WARNING: React /dist folder not found. Make sure to run `npm run build` in the frontend directory.")
+    # Everything else defaults to index.html to support React Router single-page navigation
+    return FileResponse(str(dist_dir / "index.html"))
 
