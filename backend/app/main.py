@@ -47,7 +47,7 @@ from fastapi.responses import FileResponse
 from fastapi import Request
 
 # Mount the static Vite React app on the root path for production
-dist_dir = os.path.join(os.path.dirname(__file__), "../../../frontend/dist")
+dist_dir = os.path.join(os.path.dirname(__file__), "../../frontend/dist")
 
 @app.get("/api/health")
 def health_check():
