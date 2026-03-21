@@ -1,0 +1,177 @@
+Core Contract Review Principles
+Scaffolding – Labor + Rental (GC Subcontracts)
+1. Rental is NOT Construction Work
+This is the single most important principle.
+Scaffold rental is not a permanent fixture
+It is not punch-list work
+It does not improve the real property
+It should not be treated as “Work,” “Materials,” or “Improvements”
+What we look for
+GC language that lumps rental into “Work” or “Subcontract Work”
+Payment, acceptance, LDs, warranty, or completion tied to project completion
+Our position
+Rental must be carved out or entire sections marked:
+“Not applicable to rental services”
+
+2. Payment Risk & Pay-if-Paid
+GC contracts routinely shift owner credit risk to subs — this is especially dangerous for rental.
+What we look for
+Pay-if-paid / condition precedent language
+Payment tied to Owner payment “for any reason”
+Rental payment delayed until project completion or retainage release
+Clauses requiring us to assume Owner insolvency risk
+Our position
+We do not accept Owner credit risk for rental
+Rental should be paid based on:
+delivery / time on rent / off-rent
+not project completion
+We preserve the right to:
+suspend work
+recover equipment
+stop rental accrual only when access is provided
+
+3. Retention (Especially in Colorado)
+Retention is often inappropriate for rental.
+What we look for
+Automatic 10% retainage applied to rental
+Retainage tied to project completion or punch list
+Our position
+Rental should not be subject to retention
+If unavoidable in Colorado:
+Maximum 5% per Colo. Rev. Stat. § 24-91-103 (when applicable)
+Retention must not exceed rental risk exposure
+
+4. Sales & Use Tax (High-Risk Area)
+Clients frequently claim exemption incorrectly.
+What we look for
+Statements like “project is tax exempt”
+Clauses shifting tax audits, penalties, or interest to us
+Open-ended tax clawbacks years later
+Failure to distinguish rental from materials
+Our position
+Rental is taxable in Colorado unless legally exempt
+Exemption claims require:
+valid, project-specific documentation
+legal applicability to rental (often not applicable)
+If exemption is disallowed:
+GC must reimburse tax, interest, penalties, and admin costs
+Tax treatment is based on project location, not GC assertions
+
+5. Risk of Loss, Theft, and Damage (Rental Bailment)
+This is a major financial exposure.
+What we look for
+Clauses making us responsible for:
+theft
+vandalism
+damage by other trades
+loss during GC control
+Language extending indemnity during GC’s sole use
+Our position
+Once scaffold is turned over:
+GC assumes responsibility during sole use and possession
+We are responsible only for loss/damage caused by our negligence
+Indemnity does not extend during GC’s sole use
+Unauthorized modification or use by others shifts risk to GC
+
+6. Liquidated Damages & Delay Damages
+LDs are fundamentally incompatible with rental.
+What we look for
+LDs tied to overall project completion
+“Time is of the essence” applied to rental
+Delay damages or backcharges unrelated to our scope
+Our position
+No LDs for rental services
+No damages for delay tied to substantial completion
+Rental continues during GC-caused delays
+Schedule obligations must reflect intermittent site presence
+
+7. Scope, Safety, and Control
+GC contracts often assign operational control without corresponding responsibility.
+What we look for
+Requirements for daily presence when not funded
+Safety obligations without control of site or access
+Requirements to attend meetings while not actively onsite
+Cleanup or rubbish charges during periods we are not onsite
+Our position
+When not actively onsite:
+GC acts as liaison
+meetings require advance notice
+Safety responsibility aligns with control
+Cleanup only during periods of active work
+
+8. Indemnity & Insurance
+GC indemnity clauses are often overbroad.
+What we look for
+Broad-form indemnity
+Duty to defend
+Indemnity for GC/Owner negligence
+Insurance requirements attempting to insure uninsurable risks
+Our position
+Indemnity limited to:
+our negligent acts or omissions
+No duty to defend
+No indemnity for GC/Owner sole or concurrent negligence
+Insurance must align with actual risk allocation
+
+9. Flow-Down & Prime Contract Incorporation
+Flow-downs can quietly import extreme risk.
+What we look for
+Blanket incorporation of prime contract
+Flow-down without prior review
+Prime terms controlling rental economics
+Our position
+Flow-down applies only to applicable rental scope
+We require the right to review the prime contract
+Prime terms cannot override subcontract protections for rental
+
+10. Liens, Bond Rights, and Payment Security
+This is non-negotiable.
+What we look for
+Advance or unconditional lien waivers
+Waiver of bond claim rights
+Clauses prohibiting liens for rental equipment
+Exclusive remedy clauses tied to pay-if-paid
+Our position
+Lien waivers must be:
+conditional
+tied to actual receipt of cleared funds
+We do not waive:
+mechanic’s lien rights
+bond claim rights
+Rental charges are lienable where permitted by law
+
+11. Trust-Fund Protections
+Some contracts try to eliminate statutory protections.
+What we look for
+Language disclaiming fiduciary duties
+Clauses allowing commingling or diversion of funds
+Waivers of statutory trust protections
+Our position
+Contract language cannot waive statutory trust-fund rights
+Funds paid for our labor and rental are held in trust where applicable
+Any clause conflicting with trust statutes is unacceptable
+
+12. Termination & Demobilization
+Termination clauses often underpay rental exposure.
+What we look for
+Termination for convenience with limited compensation
+No coverage for:
+standing scaffold
+dismantle
+freight
+tax through termination
+Our position
+Upon termination:
+rental continues through termination date
+dismantle and freight are compensable
+applicable sales/use tax applies
+No termination language that strands equipment unpaid
+
+13. Style of Redlines (How We Negotiate)
+This is important for consistency.
+Our style
+Short, declarative, operational
+Willing to say:
+“Not applicable to rental services”
+We do not over-explain
+We prioritize risk clarity over “GC-friendly” language

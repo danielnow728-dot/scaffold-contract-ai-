@@ -1,0 +1,72 @@
+Notes:
+Important to look at subcontractor price- to look out for any reference to that and pull so we can compare to our proposal 
+Our rental cycle is 28 days. Anything that says monthly or something must be corrected. 
+Make sure all exhibits and attachments are there for view. 
+If we are obliged by prime agreement between the prime and the contractor we are working for we must see it to make sure that we are not aggreging to something that is not ok. 
+Retainage really important to look out for 
+“Due to unique rental services provided as we do not provide a permanent fixture to the project or punch list item services but act as an extension of the Contractor for access solutions to complete project construction; CD requests removal of retention”
+Lien- check if it says anything like: “Such waivers may be made conditional upon payment”
+With regard to things like keeping the area clean and such: 
+Upon acceptance and turnover of rented scaffold from subcontractor to contractor, it is the Contractors responsibility and liability including but not limited to; daily inspections (unless included in contract scope and funding), maintenance, safety, theft, loss or damage while rented equipment is in their use and/or possession. It is the contractor’s obligation to ensure proper PPE for all users of rented equipment.
+Warranty language requiring after work for scaffolding: should be erased we are not erecting anything permanent
+Disputes. Make sure it is in CO and also that we don’t have to pay for their lawyers
+Punchlist stuff is not relevant for us if just doing scaffold- final closeout also not relevant. 
+Things like Guarantees and warrants
+O&M Manuals
+CADs, Bims
+Keys
+Attic stock 
+Training
+Drawings
+Job meeting requirements:
+Anything referring to time and being on site for meetings- it is important to note that we are not onsite due to the nature of our work and will need some time ahead to come 48-72 hours 
+Any regards to receiving services from the contractor we are working for – these need to be clear so we aren’t billed or have deductions for such services. 
+It is important to note that scaffolding has a rental component. So that the amount owed can grow independent of work performed or signed valued do to the passage of time – it is important that nothing in the contract prevents that from happening. So if there are any provision as not to exceed this cannot be part of the rental. 
+Is scaffolding projects we are not doing any installation of material, calking, etc so any reference to that should be qualified. We don’t leave any material there or anything so anything about that should be qualified. Things like Material Safety Data submitions and similar should not be added. 
+Regarding taxes:
+Contractor is aware sales tax is subject to all rental in the State of Colorado and is an exception to the Sales Tax Exemption State of Colorado DOR; Sales 6 Construction; and is based on project location. Sales Tax is subject to change based on local municipalities and may be required to collect on additional costs based on local jurisdiction rules at the time of billing.
+
+I would flag for review anything that refers to the contractor we work charging us for anything- like supervision over weekends cleanup, material use, equipment use, etc. it should be clear we are not onsite all the time. 
+
+Anything like quality control reports to be submitted must take into account we are not leaving anything onsite, bring material, building anything,etc
+Pay when paid stuff:
+What a contract review tool should flag
+🚩 1. Pay-If-Paid risk
+The clause makes owner payment a condition precedent.
+That means:
+If the owner never pays the GC, the GC never has to pay the subcontractor.
+Risk level: High
+Many subcontractors try to negotiate this to Pay-When-Paid instead.
+Example safer language:
+Contractor shall pay Subcontractor within X days after receiving payment from Owner, but in no event later than X days after Subcontractor's work is completed.
+
+🚩 2. Payment delay risk
+The clause also says:
+Contractor shall pay Subcontractor within 3 working days after receipt of payment from Owner.
+This sounds good at first, but because of the condition precedent:
+Payment timing becomes indefinite.
+Owner delays = subcontractor waits.
+
+🚩 3. Setoff risk
+Another part says:
+Contractor may deduct any amounts due or to become due to Subcontractor from any sum owed…
+This allows the GC to:
+deduct for other projects
+deduct for any claim
+deduct before dispute resolution
+That is very broad setoff authority.
+
+🚩 4. Right to retain payments for claims
+The clause allows withholding if there are claims against:
+the Owner
+the Contractor
+the Surety
+the premises
+Even if unrelated to your scope.
+
+🚩 5. Bond language
+It says the clause still applies even if the subcontractor provides:
+performance bond
+payment bond
+So bonding does not remove the payment risk.
+
