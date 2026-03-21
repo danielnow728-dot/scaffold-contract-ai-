@@ -61,7 +61,8 @@ function App() {
   useEffect(() => {
     if (!activeContractId) return;
 
-    const ws = new WebSocket(`ws://localhost:8000/api/v1/ws/${activeContractId}`);
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const ws = new WebSocket(`${protocol}//${window.location.host}/api/v1/ws/${activeContractId}`);
     
     ws.onopen = () => console.log(`WebSocket Connected for contract ${activeContractId}`);
     ws.onerror = (error) => console.error("WebSocket Error: ", error);
@@ -103,7 +104,7 @@ function App() {
       });
 
       if (!response.ok) {
-        throw new Error("Upload failed");
+        throw new Error(`Upload failed: Server returned ${response.status} ${response.statusText}`);
       }
 
       const data = await response.json();
@@ -111,7 +112,7 @@ function App() {
       setActiveContractId(data.contract_id);
     } catch (error) {
       console.error("Error uploading file:", error);
-      alert("Failed to upload document. See console for details.");
+      alert(`Failed to upload document: ${error.message} - Check Server Logs.`);
     } finally {
       setIsUploading(false);
     }
