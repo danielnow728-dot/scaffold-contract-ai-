@@ -6,8 +6,10 @@ from app.services.document_parser import parse_document
 from app.services.chunking import processing_queue, chunk_text
 from app.services.llm_pipeline import extract_financials, analyze_chunk_with_llm
 from app.api.websockets import manager
+from app.core.config import settings
 import asyncio
 import datetime
+import os
 
 router = APIRouter()
 
@@ -158,6 +160,11 @@ async def upload_contract(file: UploadFile = File(...), db: Session = Depends(ge
     db.commit()
     db.refresh(new_contract)
     
+    # Save the original file to persistent storage
+    file_path = os.path.join(settings.UPLOAD_DIR, f"{new_contract.id}_{file.filename}")
+    with open(file_path, "wb") as f:
+        f.write(file_bytes)
+    
     # Trigger background LLM pipeline
     asyncio.create_task(process_document_background(new_contract.id, parsed_text))
     
@@ -189,7 +196,25 @@ async def delete_contract(contract_id: int, db: Session = Depends(get_db)):
     db.query(ContractIssue).filter(ContractIssue.contract_id == contract_id).delete()
     db.delete(contract)
     db.commit()
+    
+    # Delete physical file
+    file_path = os.path.join(settings.UPLOAD_DIR, f"{contract.id}_{contract.filename}")
+    if os.path.exists(file_path):
+        os.remove(file_path)
+        
     return {"status": "success", "message": "Contract permanently removed"}
+
+@router.get("/{contract_id}/download_raw")
+async def download_raw_contract(contract_id: int, db: Session = Depends(get_db)):
+    contract = db.query(Contract).filter(Contract.id == contract_id).first()
+    if not contract:
+        raise HTTPException(status_code=404, detail="Contract not found")
+    
+    file_path = os.path.join(settings.UPLOAD_DIR, f"{contract.id}_{contract.filename}")
+    if not os.path.exists(file_path):
+        raise HTTPException(status_code=404, detail="Original file not found on disk")
+        
+    return FileResponse(file_path, filename=contract.filename)
 
 @router.get("/{contract_id}/export")
 async def export_contract(contract_id: int, db: Session = Depends(get_db)):

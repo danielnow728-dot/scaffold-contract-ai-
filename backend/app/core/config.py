@@ -15,12 +15,16 @@ class Settings(BaseSettings):
     ENVIRONMENT: str = os.getenv("ENVIRONMENT", "local")
     if os.getenv("RENDER"):
         # Ensure directory exists on Render
-        os.makedirs("/data", exist_ok=True)
+        os.makedirs("/data/uploads", exist_ok=True)
         SQLALCHEMY_DATABASE_URI: str = "sqlite:////data/contract_review.db"
+        UPLOAD_DIR: str = "/data/uploads"
     elif ENVIRONMENT == "local":
+        os.makedirs("./data/uploads", exist_ok=True)
         SQLALCHEMY_DATABASE_URI: str = "sqlite:///./contract_review.db"
+        UPLOAD_DIR: str = "./data/uploads"
     else:
         SQLALCHEMY_DATABASE_URI: str = f"postgresql+pg8000://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_SERVER}/{POSTGRES_DB}"
+        UPLOAD_DIR: str = "./data/uploads"
     
     # AI APIs
     OPENAI_API_KEY: str = os.getenv("OPENAI_API_KEY", "")

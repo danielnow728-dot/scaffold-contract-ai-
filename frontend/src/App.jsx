@@ -344,9 +344,16 @@ function App() {
                    {history.length === 0 && <p style={{ color: 'var(--text-secondary)' }}>No contracts explicitly stored yet.</p>}
                    {history.map(c => (
                      <div key={c.id} className="animate-fade-in" style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                       <div className="btn" style={{ flex: 1, justifyContent: 'flex-start', padding: '12px 16px', fontWeight: '500', color: 'var(--text-primary)', border: '1px solid rgba(0,0,0,0.05)', background: 'rgba(255,255,255,0.8)' }}>
+                       <a 
+                         href={`/api/v1/contracts/${c.id}/download_raw`}
+                         target="_blank"
+                         rel="noopener noreferrer"
+                         className="btn" 
+                         style={{ flex: 1, justifyContent: 'flex-start', padding: '12px 16px', fontWeight: '500', color: 'var(--text-primary)', border: '1px solid rgba(0,0,0,0.05)', background: 'rgba(255,255,255,0.8)', textDecoration: 'none' }}
+                         title="Download Original Contract"
+                       >
                          📄 {c.filename}
-                       </div>
+                       </a>
                        <button 
                           className="btn" 
                           style={{ padding: '12px', background: 'rgba(225, 29, 72, 0.05)', color: 'var(--danger-color)', border: '1px solid rgba(225, 29, 72, 0.2)' }} 
