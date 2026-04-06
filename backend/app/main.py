@@ -30,7 +30,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-from app.api import upload, chat, websockets, auth
+from app.api import upload, chat, websockets, auth, prompt
 from app.core.database import Base, engine
 
 # Initialize DB tables for testing purposes
@@ -39,6 +39,7 @@ Base.metadata.create_all(bind=engine)
 app.include_router(auth.router, prefix=settings.API_V1_STR + "/auth", tags=["auth"])
 app.include_router(upload.router, prefix=settings.API_V1_STR + "/contracts", tags=["contracts"])
 app.include_router(chat.router, prefix=settings.API_V1_STR + "/chat", tags=["chat"])
+app.include_router(prompt.router, prefix=settings.API_V1_STR + "/prompt", tags=["prompt"])
 app.include_router(websockets.router, prefix=settings.API_V1_STR, tags=["websockets"])
 
 import os

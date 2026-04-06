@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import IssueSidebar from './components/IssueSidebar'
 import DocumentViewer from './components/DocumentViewer'
 import ChatInterface from './components/ChatInterface'
+import PromptEditor from './components/PromptEditor'
 import './index.css'
 
 const getApiBase = () => {
@@ -19,6 +20,11 @@ const getWsBase = () => {
 
 const API_BASE = getApiBase();
 const WS_BASE = getWsBase();
+
+const authHeaders = () => {
+  const token = localStorage.getItem('cd_auth_token');
+  return token ? { 'Authorization': `Bearer ${token}` } : {};
+};
 
 function App() {
   const [activeTab, setActiveTab] = useState('dashboard')
@@ -38,7 +44,7 @@ function App() {
   // Fetch History side-effect
   useEffect(() => {
     if (activeTab === 'history') {
-      fetch('/api/v1/contracts/history')
+      fetch('/api/v1/contracts/history', { headers: authHeaders() })
         .then(res => res.json())
         .then(data => setHistory(data))
         .catch(err => console.error("Failed to fetch history", err));
@@ -48,7 +54,7 @@ function App() {
   const handleDelete = async (id, title) => {
     if (!window.confirm(`Are you sure you want to permanently delete "${title}"?`)) return;
     try {
-      const res = await fetch(`/api/v1/contracts/${id}`, { method: 'DELETE' });
+      const res = await fetch(`/api/v1/contracts/${id}`, { method: 'DELETE', headers: authHeaders() });
       if (res.ok) {
         setHistory(prev => prev.filter(c => c.id !== id));
       }
@@ -100,6 +106,7 @@ function App() {
     try {
       const response = await fetch("/api/v1/contracts/upload/", {
         method: "POST",
+        headers: authHeaders(),
         body: formData,
       });
 
@@ -194,12 +201,19 @@ function App() {
           >
             Active Review
           </button>
-          <button 
+          <button
             className={`btn ${activeTab === 'history' ? 'btn-primary' : ''}`}
             onClick={() => setActiveTab('history')}
             style={{ justifyContent: 'flex-start' }}
           >
             Contract History
+          </button>
+          <button
+            className={`btn ${activeTab === 'prompt' ? 'btn-primary' : ''}`}
+            onClick={() => setActiveTab('prompt')}
+            style={{ justifyContent: 'flex-start' }}
+          >
+            Prompt Settings
           </button>
         </nav>
 
@@ -216,6 +230,7 @@ function App() {
             {activeTab === 'dashboard' && 'Dashboard Overview'}
             {activeTab === 'review' && 'Contract Review Workspace'}
             {activeTab === 'history' && 'Past Contracts'}
+            {activeTab === 'prompt' && 'Prompt Settings'}
           </h2>
         </header>
 
@@ -265,7 +280,7 @@ function App() {
                         className="btn" 
                         onClick={async () => {
                           try {
-                            const res = await fetch(`/api/v1/contracts/${activeContractId}/export_summary`);
+                            const res = await fetch(`/api/v1/contracts/${activeContractId}/export_summary`, { headers: authHeaders() });
                             if (!res.ok) throw new Error("Export failed");
                             const blob = await res.blob();
                             const url = window.URL.createObjectURL(blob);
@@ -287,7 +302,7 @@ function App() {
                         className="btn btn-primary" 
                         onClick={async () => {
                           try {
-                            const res = await fetch(`/api/v1/contracts/${activeContractId}/export`);
+                            const res = await fetch(`/api/v1/contracts/${activeContractId}/export`, { headers: authHeaders() });
                             if (!res.ok) throw new Error("Export failed");
                             const blob = await res.blob();
                             const url = window.URL.createObjectURL(blob);
@@ -327,7 +342,7 @@ function App() {
                   )}
 
                   <IssueSidebar issues={issues} financials={financials} />
-                  <ChatInterface contractId={null} />
+                  <ChatInterface contractId={activeContractId} />
                 </div>
               )}
             </div>
@@ -335,7 +350,7 @@ function App() {
 
           {activeTab === 'history' && (
             <div className="library-container animate-fade-in" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', height: '100%', overflow: 'hidden' }}>
-              
+
               <div className="glass-panel" style={{ padding: '24px', display: 'flex', flexDirection: 'column', height: '100%', background: 'rgba(255,255,255,0.6)' }}>
                 <h3 style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--primary-hover)', fontSize: '1.1rem' }}>
                   📁 Raw Contracts
@@ -344,20 +359,55 @@ function App() {
                    {history.length === 0 && <p style={{ color: 'var(--text-secondary)' }}>No contracts explicitly stored yet.</p>}
                    {history.map(c => (
                      <div key={c.id} className="animate-fade-in" style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                       <a 
-                         href={`/api/v1/contracts/${c.id}/download_raw`}
-                         target="_blank"
-                         rel="noopener noreferrer"
-                         className="btn" 
+                       <button
+                         className="btn"
                          style={{ flex: 1, justifyContent: 'flex-start', padding: '12px 16px', fontWeight: '500', color: 'var(--text-primary)', border: '1px solid rgba(0,0,0,0.05)', background: 'rgba(255,255,255,0.8)', textDecoration: 'none' }}
                          title="Download Original Contract"
+                         onClick={async () => {
+                           try {
+                             const res = await fetch(`/api/v1/contracts/${c.id}/download_raw`, { headers: authHeaders() });
+                             if (!res.ok) throw new Error("Download failed");
+                             const blob = await res.blob();
+                             const url = window.URL.createObjectURL(blob);
+                             const a = document.createElement('a');
+                             a.href = url;
+                             a.download = c.filename;
+                             document.body.appendChild(a);
+                             a.click();
+                             a.remove();
+                             window.URL.revokeObjectURL(url);
+                           } catch (e) { alert("Download failed: " + e.message); }
+                         }}
                        >
                          📄 {c.filename}
-                       </a>
-                       <button 
-                          className="btn" 
-                          style={{ padding: '12px', background: 'rgba(225, 29, 72, 0.05)', color: 'var(--danger-color)', border: '1px solid rgba(225, 29, 72, 0.2)' }} 
-                          onClick={() => handleDelete(c.id, c.filename)} 
+                       </button>
+                       <button
+                          className="btn"
+                          style={{ padding: '12px', background: 'rgba(0, 90, 156, 0.05)', color: 'var(--primary-color)', border: '1px solid rgba(0, 90, 156, 0.2)' }}
+                          onClick={async () => {
+                            if (!window.confirm(`Re-analyze "${c.filename}" with the current prompt? This will clear existing results and start fresh.`)) return;
+                            try {
+                              const res = await fetch(`/api/v1/contracts/${c.id}/reanalyze`, {
+                                method: 'POST',
+                                headers: authHeaders()
+                              });
+                              if (!res.ok) throw new Error("Re-analysis failed");
+                              // Switch to review tab and connect WebSocket
+                              setIssues([]);
+                              setFinancials([]);
+                              setProgress({ completed: 0, total: 0 });
+                              setActiveContractId(c.id);
+                              setActiveTab('review');
+                            } catch (e) { alert("Re-analysis failed: " + e.message); }
+                          }}
+                          title="Re-analyze with current prompt"
+                       >
+                         🔄
+                       </button>
+                       <button
+                          className="btn"
+                          style={{ padding: '12px', background: 'rgba(225, 29, 72, 0.05)', color: 'var(--danger-color)', border: '1px solid rgba(225, 29, 72, 0.2)' }}
+                          onClick={() => handleDelete(c.id, c.filename)}
                           title="Delete Contract"
                        >
                          🗑️
@@ -366,7 +416,7 @@ function App() {
                    ))}
                 </div>
               </div>
-              
+
               <div className="glass-panel" style={{ padding: '24px', display: 'flex', flexDirection: 'column', height: '100%', background: 'rgba(255,255,255,0.6)' }}>
                 <h3 style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--accent-color)', fontSize: '1.1rem' }}>
                   ✨ AI Reviewed Summaries
@@ -375,13 +425,31 @@ function App() {
                    {history.length === 0 && <p style={{ color: 'var(--text-secondary)' }}>Pending document uploads.</p>}
                    {history.map(c => (
                      <div key={c.id} className="animate-fade-in" style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                       <a href={`/api/v1/contracts/${c.id}/export`} target="_blank" rel="noopener noreferrer" className="btn" style={{ flex: 1, textDecoration: 'none', justifyContent: 'flex-start', padding: '12px 16px', fontWeight: '500', color: 'var(--primary-color)', border: '1px solid rgba(0,0,0,0.05)', background: 'rgba(255,255,255,0.8)' }}>
+                       <button
+                         className="btn"
+                         style={{ flex: 1, justifyContent: 'flex-start', padding: '12px 16px', fontWeight: '500', color: 'var(--primary-color)', border: '1px solid rgba(0,0,0,0.05)', background: 'rgba(255,255,255,0.8)' }}
+                         onClick={async () => {
+                           try {
+                             const res = await fetch(`/api/v1/contracts/${c.id}/export`, { headers: authHeaders() });
+                             if (!res.ok) throw new Error("Export failed");
+                             const blob = await res.blob();
+                             const url = window.URL.createObjectURL(blob);
+                             const a = document.createElement('a');
+                             a.href = url;
+                             a.download = `AI_Reviewed_${c.filename}.docx`;
+                             document.body.appendChild(a);
+                             a.click();
+                             a.remove();
+                             window.URL.revokeObjectURL(url);
+                           } catch (e) { alert("Export failed: " + e.message); }
+                         }}
+                       >
                          📝 AI_Reviewed_{c.filename}.docx
-                       </a>
-                       <button 
-                          className="btn" 
-                          style={{ padding: '12px', background: 'rgba(225, 29, 72, 0.05)', color: 'var(--danger-color)', border: '1px solid rgba(225, 29, 72, 0.2)' }} 
-                          onClick={() => handleDelete(c.id, c.filename)} 
+                       </button>
+                       <button
+                          className="btn"
+                          style={{ padding: '12px', background: 'rgba(225, 29, 72, 0.05)', color: 'var(--danger-color)', border: '1px solid rgba(225, 29, 72, 0.2)' }}
+                          onClick={() => handleDelete(c.id, c.filename)}
                           title="Delete Contract"
                        >
                          🗑️
@@ -393,7 +461,11 @@ function App() {
 
             </div>
           )}
-          
+
+          {activeTab === 'prompt' && (
+            <PromptEditor />
+          )}
+
         </div>
       </main>
     </div>

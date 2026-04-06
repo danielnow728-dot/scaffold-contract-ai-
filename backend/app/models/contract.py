@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Text, DateTime, JSON
+from sqlalchemy import Column, Integer, String, Text, DateTime, JSON, Boolean
 from datetime import datetime
 from app.core.database import Base
 
@@ -28,3 +28,12 @@ class ContractIssue(Base):
     # Options for client
     option_a_text = Column(Text) # Most protective
     option_b_text = Column(Text, nullable=True) # Compromise
+
+
+class SystemPrompt(Base):
+    __tablename__ = "system_prompts"
+
+    id = Column(Integer, primary_key=True, index=True)
+    content = Column(Text, nullable=False)
+    is_active = Column(Boolean, default=True)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

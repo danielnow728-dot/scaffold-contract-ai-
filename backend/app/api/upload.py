@@ -7,6 +7,7 @@ from app.services.document_parser import parse_document
 from app.services.chunking import processing_queue, chunk_text
 from app.services.llm_pipeline import extract_financials, analyze_chunk_with_llm
 from app.api.websockets import manager
+from app.api.auth import verify_token
 from app.core.config import settings
 import asyncio
 import datetime
@@ -53,19 +54,22 @@ async def process_document_background(contract_id: int, parsed_text: str):
             current_db.commit()
         
         # 2. Chunk text and add to rate-limited queue
-        chunks = chunk_text(parsed_text)
+        chunks = chunk_text(parsed_text)  # Now returns list of dicts with text + page metadata
         total_chunks = len(chunks)
         print(f"Created {total_chunks} text chunks for processing")
-        
+
         # Track progress
         progress_state = {"completed": 0, "total": total_chunks}
-        
+
         # Broadcast initial state
         await manager.broadcast_progress(contract_id, 0, total_chunks)
-        
-        async def process_single_chunk(c_text, cid):
-            print(f"Processing chunk for contract {cid}...")
-            result = await analyze_chunk_with_llm(c_text)
+
+        async def process_single_chunk(chunk_data, cid, chunk_idx, num_chunks):
+            c_text = chunk_data["text"]
+            start_page = chunk_data.get("start_page")
+            end_page = chunk_data.get("end_page")
+            print(f"Processing chunk {chunk_idx + 1}/{num_chunks} for contract {cid} (pages {start_page}-{end_page})...")
+            result = await analyze_chunk_with_llm(c_text, start_page=start_page, end_page=end_page, chunk_index=chunk_idx, total_chunks=num_chunks)
             
             issues = result.get("issues", [])
             summary = result.get("summary", {})
@@ -131,15 +135,15 @@ async def process_document_background(contract_id: int, parsed_text: str):
             progress_state["completed"] += 1
             await manager.broadcast_progress(cid, progress_state["completed"], progress_state["total"])
                 
-        for chunk in chunks:
-            await processing_queue.add_task(process_single_chunk, chunk, contract_id)
+        for idx, chunk_data in enumerate(chunks):
+            await processing_queue.add_task(process_single_chunk, chunk_data, contract_id, idx, total_chunks)
     except Exception as e:
         print(f"CRITICAL FASTAPI BACKGROUND ERROR: {e}")
     finally:
         current_db.close()
 
 @router.post("/upload/")
-async def upload_contract(file: UploadFile = File(...), db: Session = Depends(get_db)):
+async def upload_contract(file: UploadFile = File(...), db: Session = Depends(get_db), _=Depends(verify_token)):
     if not file.filename.endswith(('.pdf', '.docx', '.txt')):
         raise HTTPException(status_code=400, detail="Invalid file type. Only PDF, DOCX, and TXT are supported.")
     
@@ -177,18 +181,51 @@ async def upload_contract(file: UploadFile = File(...), db: Session = Depends(ge
         "parsed_text": parsed_text
     }
 
+@router.post("/{contract_id}/reanalyze")
+async def reanalyze_contract(contract_id: int, db: Session = Depends(get_db), _=Depends(verify_token)):
+    """Clear existing issues and re-run the LLM pipeline with the current prompt."""
+    contract = db.query(Contract).filter(Contract.id == contract_id).first()
+    if not contract:
+        raise HTTPException(status_code=404, detail="Contract not found")
+
+    # Read the original file from disk
+    file_path = os.path.join(settings.UPLOAD_DIR, f"{contract.id}_{contract.filename}")
+    if not os.path.exists(file_path):
+        raise HTTPException(status_code=404, detail="Original file not found on disk. Cannot re-analyze.")
+
+    with open(file_path, "rb") as f:
+        file_bytes = f.read()
+
+    parsed_text = parse_document(contract.filename, file_bytes)
+
+    # Clear old results
+    db.query(ContractIssue).filter(ContractIssue.contract_id == contract_id).delete()
+    contract.financials = None
+    contract.summary_text = None
+    contract.status = "processing"
+    db.commit()
+
+    # Kick off background re-analysis
+    asyncio.create_task(process_document_background(contract.id, parsed_text))
+
+    return {
+        "message": "Re-analysis started. Previous results cleared.",
+        "contract_id": contract.id,
+        "parsed_length": len(parsed_text)
+    }
+
 from fastapi.responses import StreamingResponse
 import io
 from docx import Document
 from docx.shared import RGBColor
 
 @router.get("/history")
-async def get_contract_history(db: Session = Depends(get_db)):
+async def get_contract_history(db: Session = Depends(get_db), _=Depends(verify_token)):
     contracts = db.query(Contract).order_by(Contract.uploaded_at.desc()).all()
     return [{"id": c.id, "filename": c.filename, "uploaded_at": c.uploaded_at, "status": c.status} for c in contracts]
 
 @router.delete("/{contract_id}")
-async def delete_contract(contract_id: int, db: Session = Depends(get_db)):
+async def delete_contract(contract_id: int, db: Session = Depends(get_db), _=Depends(verify_token)):
     contract = db.query(Contract).filter(Contract.id == contract_id).first()
     if not contract:
         raise HTTPException(status_code=404, detail="Contract not found")
@@ -206,7 +243,7 @@ async def delete_contract(contract_id: int, db: Session = Depends(get_db)):
     return {"status": "success", "message": "Contract permanently removed"}
 
 @router.get("/{contract_id}/download_raw")
-async def download_raw_contract(contract_id: int, db: Session = Depends(get_db)):
+async def download_raw_contract(contract_id: int, db: Session = Depends(get_db), _=Depends(verify_token)):
     contract = db.query(Contract).filter(Contract.id == contract_id).first()
     if not contract:
         raise HTTPException(status_code=404, detail="Contract not found")
@@ -218,7 +255,7 @@ async def download_raw_contract(contract_id: int, db: Session = Depends(get_db))
     return FileResponse(file_path, filename=contract.filename)
 
 @router.get("/{contract_id}/export")
-async def export_contract(contract_id: int, db: Session = Depends(get_db)):
+async def export_contract(contract_id: int, db: Session = Depends(get_db), _=Depends(verify_token)):
     # 1. Fetch Contract from DB
     contract = db.query(Contract).filter(Contract.id == contract_id).first()
     if not contract:
@@ -289,7 +326,7 @@ async def export_contract(contract_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=500, detail="Failed to generate Word document.")
 
 @router.get("/{contract_id}/export_summary")
-async def export_contract_summary(contract_id: int, db: Session = Depends(get_db)):
+async def export_contract_summary(contract_id: int, db: Session = Depends(get_db), _=Depends(verify_token)):
     contract = db.query(Contract).filter(Contract.id == contract_id).first()
     if not contract:
         raise HTTPException(status_code=404, detail="Contract not found")

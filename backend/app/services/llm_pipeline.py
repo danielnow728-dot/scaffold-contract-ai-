@@ -6,26 +6,59 @@ import logging
 client = AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
 logger = logging.getLogger(__name__)
 
-# Load the system prompt we synthesized from the user's notes
+# Load the system prompt — checks DB for a custom prompt first, falls back to file
 def load_system_prompt() -> str:
     try:
-        with open("app/core/scaffolding_prompt.md", "r", encoding="utf-8") as f:
-            return f.read()
+        from app.core.database import SessionLocal
+        from app.api.prompt import get_active_prompt
+        db = SessionLocal()
+        try:
+            return get_active_prompt(db)
+        finally:
+            db.close()
     except Exception as e:
-        logger.error(f"Failed to load system prompt: {e}")
-        return "You are an expert scaffolding contract reviewer."
+        logger.error(f"Failed to load system prompt from DB: {e}")
+        try:
+            with open("app/core/scaffolding_prompt.md", "r", encoding="utf-8") as f:
+                return f.read()
+        except Exception as e2:
+            logger.error(f"Failed to load system prompt from file: {e2}")
+            return "You are an expert scaffolding contract reviewer."
 
-async def analyze_chunk_with_llm(chunk_text: str):
+async def analyze_chunk_with_llm(chunk_text: str, start_page: int = None, end_page: int = None, chunk_index: int = None, total_chunks: int = None):
     """
     Analyzes a specific chunk of the contract against the scaffolding rules.
     Expects JSON output mapping found risks and redlines.
     """
     system_prompt = load_system_prompt()
-    
+
+    # Build page context so the LLM knows exactly where it is in the document
+    location_context = ""
+    if start_page is not None and end_page is not None:
+        if start_page == end_page:
+            location_context = f"This chunk contains text from PAGE {start_page}."
+        else:
+            location_context = f"This chunk contains text from PAGE {start_page} through PAGE {end_page}."
+        location_context += " Use ONLY the page numbers from the '--- PAGE X ---' markers in the text below. Do NOT estimate or guess page numbers."
+    else:
+        location_context = (
+            "This document was uploaded as a DOCX/TXT file and does not have reliable page numbers. "
+            "For the 'page' field in your JSON output, use 'N/A' instead of guessing."
+        )
+
+    chunk_position = ""
+    if chunk_index is not None and total_chunks is not None:
+        chunk_position = f" (Chunk {chunk_index + 1} of {total_chunks})"
+
     prompt = f"""
-    Analyze the following extracted contract text using the exact JSON format and instructions specified in your system prompt.
+    Analyze the following extracted contract text{chunk_position} using the exact JSON format and instructions specified in your system prompt.
     If no relevant issues are found in this chunk, return an empty array for the issues field.
-    
+
+    IMPORTANT PAGE/LOCATION INSTRUCTIONS:
+    {location_context}
+
+    For section numbers, quote the EXACT section number as printed in the contract text (e.g., "2.8", "4.1.2", "Article 7"). Do NOT invent section numbers that are not explicitly written in the text.
+
     CONTRACT TEXT CHUNK:
     {chunk_text}
     """
