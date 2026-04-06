@@ -3,6 +3,7 @@ import IssueSidebar from './components/IssueSidebar'
 import DocumentViewer from './components/DocumentViewer'
 import ChatInterface from './components/ChatInterface'
 import PromptEditor from './components/PromptEditor'
+import PromptViewer from './components/PromptViewer'
 import './index.css'
 
 const getApiBase = () => {
@@ -247,6 +248,7 @@ function App() {
               <button className="btn btn-primary" style={{ padding: '12px 24px', fontSize: '1rem' }} onClick={() => setActiveTab('review')}>
                 Start a New Review
               </button>
+              <PromptViewer />
             </div>
           )}
           
