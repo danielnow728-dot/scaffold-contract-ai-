@@ -22,15 +22,11 @@ function HighlightedText({ text, search }) {
 export default function PromptViewer() {
   const [content, setContent] = useState('')
   const [loading, setLoading] = useState(true)
-  const [expanded, setExpanded] = useState(false)
   const [search, setSearch] = useState('')
 
   const token = localStorage.getItem('cd_auth_token')
 
   useEffect(() => {
-    if (!expanded) return
-    if (content) return // already loaded
-
     fetch('/api/v1/prompt', {
       headers: { 'Authorization': `Bearer ${token}` }
     })
@@ -38,7 +34,7 @@ export default function PromptViewer() {
       .then(data => setContent(data.content))
       .catch(() => setContent('Unable to load prompt.'))
       .finally(() => setLoading(false))
-  }, [expanded])
+  }, [])
 
   const matchCount = useMemo(() => {
     if (!search.trim() || !content) return 0
@@ -46,97 +42,76 @@ export default function PromptViewer() {
     return (content.match(regex) || []).length
   }, [search, content])
 
+  if (loading) {
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'var(--text-secondary)' }}>
+        Loading...
+      </div>
+    )
+  }
+
   return (
-    <div style={{ marginTop: '32px', maxWidth: '700px', margin: '32px auto 0 auto', textAlign: 'left' }}>
-      <button
-        onClick={() => setExpanded(!expanded)}
-        style={{
-          background: 'none',
-          border: 'none',
-          cursor: 'pointer',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px',
-          color: 'var(--text-secondary)',
-          fontSize: '0.9rem',
-          fontWeight: 500,
-          padding: '8px 0',
-          width: '100%',
-          justifyContent: 'center'
-        }}
-      >
-        <span style={{
-          display: 'inline-block',
-          transition: 'transform 0.2s ease',
-          transform: expanded ? 'rotate(90deg)' : 'rotate(0deg)'
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', gap: '16px' }}>
+      {/* Header */}
+      <div>
+        <h3 style={{ color: 'var(--text-primary)', margin: 0 }}>What does the AI look for?</h3>
+        <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', margin: '4px 0 0 0', fontStyle: 'italic' }}>
+          This is the exact set of instructions the AI uses when reviewing your contracts. Search for any topic to see what rules apply.
+        </p>
+      </div>
+
+      {/* Search bar */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <input
+          type="text"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search (e.g. insurance, retention, lien, liquidated damages)..."
+          autoFocus
+          style={{
+            flex: 1,
+            padding: '10px 14px',
+            borderRadius: '8px',
+            border: '1px solid var(--surface-border)',
+            background: 'rgba(255,255,255,0.85)',
+            fontSize: '0.9rem',
+            outline: 'none',
+            color: 'var(--text-primary)'
+          }}
+        />
+        {search.trim() && (
+          <span style={{
+            fontSize: '0.85rem',
+            color: matchCount > 0 ? 'var(--success-color)' : 'var(--danger-color)',
+            whiteSpace: 'nowrap',
+            fontWeight: 500
+          }}>
+            {matchCount} {matchCount === 1 ? 'match' : 'matches'}
+          </span>
+        )}
+      </div>
+
+      {/* Prompt content */}
+      <div style={{
+        flex: 1,
+        overflowY: 'auto',
+        padding: '16px',
+        borderRadius: '8px',
+        border: '1px solid var(--surface-border)',
+        background: 'rgba(255,255,255,0.7)'
+      }}>
+        <pre style={{
+          whiteSpace: 'pre-wrap',
+          wordWrap: 'break-word',
+          fontSize: '0.8rem',
+          fontFamily: "'JetBrains Mono', 'Fira Code', 'Consolas', monospace",
+          lineHeight: 1.6,
+          color: 'var(--text-primary)',
+          margin: 0
         }}>
-          &#9654;
-        </span>
-        What does the AI look for?
-      </button>
-
-      {expanded && (
-        <div className="animate-fade-in" style={{
-          marginTop: '12px',
-          padding: '20px',
-          borderRadius: '8px',
-          border: '1px solid var(--surface-border)',
-          background: 'rgba(255,255,255,0.7)',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '12px'
-        }}>
-          {loading ? (
-            <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', textAlign: 'center' }}>Loading...</p>
-          ) : (
-            <>
-              <p style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', fontStyle: 'italic', margin: 0 }}>
-                This is the exact set of instructions the AI uses when reviewing your contracts. It is not a black box.
-              </p>
-
-              {/* Search bar */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <input
-                  type="text"
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Search prompt (e.g. insurance, retention, lien)..."
-                  style={{
-                    flex: 1,
-                    padding: '8px 12px',
-                    borderRadius: '6px',
-                    border: '1px solid var(--surface-border)',
-                    background: 'rgba(255,255,255,0.85)',
-                    fontSize: '0.85rem',
-                    outline: 'none',
-                    color: 'var(--text-primary)'
-                  }}
-                />
-                {search.trim() && (
-                  <span style={{ fontSize: '0.8rem', color: matchCount > 0 ? 'var(--success-color)' : 'var(--danger-color)', whiteSpace: 'nowrap', fontWeight: 500 }}>
-                    {matchCount} {matchCount === 1 ? 'match' : 'matches'}
-                  </span>
-                )}
-              </div>
-
-              {/* Prompt content */}
-              <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
-                <pre style={{
-                  whiteSpace: 'pre-wrap',
-                  wordWrap: 'break-word',
-                  fontSize: '0.8rem',
-                  fontFamily: "'JetBrains Mono', 'Fira Code', 'Consolas', monospace",
-                  lineHeight: 1.6,
-                  color: 'var(--text-primary)',
-                  margin: 0
-                }}>
-                  <HighlightedText text={content} search={search} />
-                </pre>
-              </div>
-            </>
-          )}
-        </div>
-      )}
+          <HighlightedText text={content} search={search} />
+        </pre>
+      </div>
     </div>
   )
 }

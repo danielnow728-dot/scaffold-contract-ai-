@@ -4,6 +4,7 @@ import DocumentViewer from './components/DocumentViewer'
 import ChatInterface from './components/ChatInterface'
 import PromptEditor from './components/PromptEditor'
 import PromptViewer from './components/PromptViewer'
+
 import './index.css'
 
 const getApiBase = () => {
@@ -210,6 +211,13 @@ function App() {
             Contract History
           </button>
           <button
+            className={`btn ${activeTab === 'rules' ? 'btn-primary' : ''}`}
+            onClick={() => setActiveTab('rules')}
+            style={{ justifyContent: 'flex-start' }}
+          >
+            AI Rules
+          </button>
+          <button
             className={`btn ${activeTab === 'prompt' ? 'btn-primary' : ''}`}
             onClick={() => setActiveTab('prompt')}
             style={{ justifyContent: 'flex-start' }}
@@ -231,6 +239,7 @@ function App() {
             {activeTab === 'dashboard' && 'Dashboard Overview'}
             {activeTab === 'review' && 'Contract Review Workspace'}
             {activeTab === 'history' && 'Past Contracts'}
+            {activeTab === 'rules' && 'AI Rules'}
             {activeTab === 'prompt' && 'Prompt Settings'}
           </h2>
         </header>
@@ -248,7 +257,6 @@ function App() {
               <button className="btn btn-primary" style={{ padding: '12px 24px', fontSize: '1rem' }} onClick={() => setActiveTab('review')}>
                 Start a New Review
               </button>
-              <PromptViewer />
             </div>
           )}
           
@@ -462,6 +470,10 @@ function App() {
               </div>
 
             </div>
+          )}
+
+          {activeTab === 'rules' && (
+            <PromptViewer />
           )}
 
           {activeTab === 'prompt' && (
