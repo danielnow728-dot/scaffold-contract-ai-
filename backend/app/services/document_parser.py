@@ -20,18 +20,21 @@ def parse_pdf(file_bytes: bytes) -> str:
     return "\n".join(text)
 
 def parse_docx(file_bytes: bytes) -> str:
-    text = []
     doc = docx.Document(io.BytesIO(file_bytes))
+    text = []
 
-    # Estimate page breaks: docx files can contain explicit page breaks
-    # and we can also estimate based on ~45 lines per page
+    # Track heading counters for auto-numbered sections
+    # Supports 3 levels: 1, 1.1, 1.1.1
+    heading_counters = [0, 0, 0]
+
+    # Estimate page breaks
     page_num = 1
     line_count = 0
-    lines_per_page = 45  # Rough estimate for standard letter/A4
+    lines_per_page = 45
     text.append(f"--- PAGE {page_num} (estimated) ---")
 
     for para in doc.paragraphs:
-        # Check for explicit page breaks in the paragraph's XML
+        # Check for explicit page breaks
         has_page_break = False
         for run in para.runs:
             if run._element.xml and 'w:br' in run._element.xml and 'type="page"' in run._element.xml:
@@ -44,15 +47,34 @@ def parse_docx(file_bytes: bytes) -> str:
             line_count = 0
 
         para_text = para.text.strip()
-        if para_text:
-            text.append(para_text)
-            # Estimate line count (rough: 1 paragraph = 1-3 lines depending on length)
-            line_count += max(1, len(para_text) // 80 + 1)
+        if not para_text:
+            continue
 
-            if line_count >= lines_per_page:
-                page_num += 1
-                text.append(f"\n--- PAGE {page_num} (estimated) ---")
-                line_count = 0
+        # Detect heading styles and prepend section numbers
+        style_name = para.style.name if para.style else ""
+        prefix = ""
+
+        if style_name == "Heading 1":
+            heading_counters[0] += 1
+            heading_counters[1] = 0
+            heading_counters[2] = 0
+            prefix = f"{heading_counters[0]}. "
+        elif style_name == "Heading 2":
+            heading_counters[1] += 1
+            heading_counters[2] = 0
+            prefix = f"{heading_counters[0]}.{heading_counters[1]} "
+        elif style_name == "Heading 3":
+            heading_counters[2] += 1
+            prefix = f"{heading_counters[0]}.{heading_counters[1]}.{heading_counters[2]} "
+
+        text.append(prefix + para_text)
+
+        # Estimate line count for page breaks
+        line_count += max(1, len(para_text) // 80 + 1)
+        if line_count >= lines_per_page:
+            page_num += 1
+            text.append(f"\n--- PAGE {page_num} (estimated) ---")
+            line_count = 0
 
     return "\n".join(text)
 
