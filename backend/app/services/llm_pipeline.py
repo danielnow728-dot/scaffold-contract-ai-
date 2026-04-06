@@ -25,7 +25,7 @@ def load_system_prompt() -> str:
             logger.error(f"Failed to load system prompt from file: {e2}")
             return "You are an expert scaffolding contract reviewer."
 
-async def analyze_chunk_with_llm(chunk_text: str, start_page: int = None, end_page: int = None, chunk_index: int = None, total_chunks: int = None):
+async def analyze_chunk_with_llm(chunk_text: str, start_page: int = None, end_page: int = None, chunk_index: int = None, total_chunks: int = None, pages_estimated: bool = False):
     """
     Analyzes a specific chunk of the contract against the scaffolding rules.
     Expects JSON output mapping found risks and redlines.
@@ -36,14 +36,22 @@ async def analyze_chunk_with_llm(chunk_text: str, start_page: int = None, end_pa
     location_context = ""
     if start_page is not None and end_page is not None:
         if start_page == end_page:
-            location_context = f"This chunk contains text from PAGE {start_page}."
+            location_context = f"This chunk contains text from approximately PAGE {start_page}."
         else:
-            location_context = f"This chunk contains text from PAGE {start_page} through PAGE {end_page}."
-        location_context += " Use ONLY the page numbers from the '--- PAGE X ---' markers in the text below. Do NOT estimate or guess page numbers."
+            location_context = f"This chunk contains text from approximately PAGE {start_page} through PAGE {end_page}."
+
+        if pages_estimated:
+            location_context += (
+                " These page numbers are estimated from a DOCX file and may not match the original document's printed page numbers exactly. "
+                "Use them as approximate references. If the text itself contains printed page numbers, headers, or footers with page references, prefer those."
+            )
+        else:
+            location_context += " Use the page numbers from the '--- PAGE X ---' markers in the text below."
     else:
         location_context = (
-            "This document was uploaded as a DOCX/TXT file and does not have reliable page numbers. "
-            "For the 'page' field in your JSON output, use 'N/A' instead of guessing."
+            "This document does not have page markers. "
+            "If the text itself contains printed page numbers, headers, or footers with page references, use those. "
+            "Otherwise, use 'N/A' for the page field."
         )
 
     chunk_position = ""

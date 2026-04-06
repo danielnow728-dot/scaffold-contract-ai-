@@ -45,17 +45,18 @@ def chunk_text(text: str, max_chars: int = 12000) -> List[Dict]:
     Returns a list of dicts: { "text": str, "start_page": int|None, "end_page": int|None }
     """
     # Check if the text has PDF page markers
-    page_pattern = re.compile(r'--- PAGE (\d+) ---')
+    page_pattern = re.compile(r'--- PAGE (\d+).*?---')
     page_markers = list(page_pattern.finditer(text))
 
     if page_markers:
-        return _chunk_with_pages(text, page_markers, max_chars)
+        pages_estimated = "(estimated)" in text
+        return _chunk_with_pages(text, page_markers, max_chars, pages_estimated)
     else:
         return _chunk_without_pages(text, max_chars)
 
 
-def _chunk_with_pages(text: str, page_markers, max_chars: int) -> List[Dict]:
-    """Split PDF text on page boundaries, grouping pages into chunks under max_chars."""
+def _chunk_with_pages(text: str, page_markers, max_chars: int, pages_estimated: bool = False) -> List[Dict]:
+    """Split text on page boundaries, grouping pages into chunks under max_chars."""
     # Split text into individual pages
     pages = []
     for i, marker in enumerate(page_markers):
@@ -76,7 +77,8 @@ def _chunk_with_pages(text: str, page_markers, max_chars: int) -> List[Dict]:
             chunks.append({
                 "text": current_text,
                 "start_page": current_start_page,
-                "end_page": current_end_page
+                "end_page": current_end_page,
+                "pages_estimated": pages_estimated
             })
             current_text = page["text"]
             current_start_page = page["num"]
@@ -89,7 +91,8 @@ def _chunk_with_pages(text: str, page_markers, max_chars: int) -> List[Dict]:
         chunks.append({
             "text": current_text,
             "start_page": current_start_page,
-            "end_page": current_end_page
+            "end_page": current_end_page,
+            "pages_estimated": pages_estimated
         })
 
     return chunks

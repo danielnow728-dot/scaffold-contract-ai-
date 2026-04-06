@@ -68,8 +68,9 @@ async def process_document_background(contract_id: int, parsed_text: str):
             c_text = chunk_data["text"]
             start_page = chunk_data.get("start_page")
             end_page = chunk_data.get("end_page")
-            print(f"Processing chunk {chunk_idx + 1}/{num_chunks} for contract {cid} (pages {start_page}-{end_page})...")
-            result = await analyze_chunk_with_llm(c_text, start_page=start_page, end_page=end_page, chunk_index=chunk_idx, total_chunks=num_chunks)
+            pages_estimated = chunk_data.get("pages_estimated", False)
+            print(f"Processing chunk {chunk_idx + 1}/{num_chunks} for contract {cid} (pages {start_page}-{end_page}, estimated={pages_estimated})...")
+            result = await analyze_chunk_with_llm(c_text, start_page=start_page, end_page=end_page, chunk_index=chunk_idx, total_chunks=num_chunks, pages_estimated=pages_estimated)
             
             issues = result.get("issues", [])
             summary = result.get("summary", {})
