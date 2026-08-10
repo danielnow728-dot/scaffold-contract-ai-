@@ -116,7 +116,6 @@ async def process_document_background(contract_id: int, parsed_text: str):
                             "category": issue.get("section_name", issue.get("section", "General")),
                             "original_text": issue.get("original_text", ""),
                             "location": f"Page {issue.get('page', 'Unknown')}",
-                            "risk_level": "High" if is_deletion else "Medium",
                             "explanation": issue.get("problem_reasoning", ""),
                             "option_a_text": "[DELETE ENTIRELY]" if is_deletion else option_a,
                             "option_b_text": option_b

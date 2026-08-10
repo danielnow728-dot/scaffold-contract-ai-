@@ -22,7 +22,6 @@ class ContractIssue(Base):
     category = Column(String)  # e.g., "Retention", "Pay-If-Paid"
     original_text = Column(Text)
     location = Column(String)  # e.g., "Page 3, Section 4.1"
-    risk_level = Column(String) # e.g., "High", "Medium"
     explanation = Column(Text)
     
     # Options for client

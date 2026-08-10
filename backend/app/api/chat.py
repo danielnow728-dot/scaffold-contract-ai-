@@ -47,7 +47,7 @@ async def chat_with_document(request: ChatRequest, db: Session = Depends(get_db)
         issues_text = []
         for issue in issues:
             issues_text.append(
-                f"- [{issue.risk_level}] {issue.category} ({issue.location}): "
+                f"- {issue.category} ({issue.location}): "
                 f"{issue.explanation}\n"
                 f"  Original: {issue.original_text}\n"
                 f"  Option A: {issue.option_a_text}\n"
